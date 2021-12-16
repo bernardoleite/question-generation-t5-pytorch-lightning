@@ -34,5 +34,5 @@ beam_outputs = model.generate(
 )
 
 for beam_output in beam_outputs:
-    sent = tokenizer.decode(beam_output, skip_special_tokens=True,clean_up_tokenization_spaces=True)
+    sent = tokenizer.decode(beam_output, skip_special_tokens=True, clean_up_tokenization_spaces=True)
     print(sent)
