@@ -18,7 +18,7 @@ answer = "John"
 text = "context: "+ context + " " + "answer: " + answer + " </s>"
 print (text)
 
-encoding = tokenizer.encode_plus(text, max_length = 64, padding=True, return_tensors="pt")
+encoding = tokenizer("Mary", "Mary and John are a couple.", max_length = 64, padding=True, return_tensors="pt")
 print (encoding.keys())
 input_ids = encoding["input_ids"].to(device)
 attention_mask = encoding["attention_mask"].to(device)
