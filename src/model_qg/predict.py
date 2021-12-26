@@ -1,7 +1,6 @@
     
 import torch
 from transformers import T5ForConditionalGeneration, T5Tokenizer
-import sys
 
 trained_model_path = '../../model/'
 trained_tokenizer = '../../tokenizer/'
@@ -27,7 +26,7 @@ model.eval()
 beam_outputs = model.generate(
     input_ids=input_ids,
     attention_mask=attention_mask,
-    max_length=72,
+    max_length=96,
     early_stopping=True,
     num_beams=5,
     num_return_sequences=3

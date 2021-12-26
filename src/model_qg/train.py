@@ -21,6 +21,7 @@ import pytorch_lightning as pl
 import textwrap
 
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning import loggers as pl_loggers
 
 from transformers import (
     AdamW,
@@ -28,6 +29,8 @@ from transformers import (
     T5Tokenizer,
     get_linear_schedule_with_warmup
 )
+
+from models import T5FineTuner2
 
 # need this because of the following error:
 # forrtl: error (200): program aborting due to control-C event
@@ -96,117 +99,6 @@ class QuestionGenerationDataset(Dataset):
             self.inputs.append(tokenized_inputs)
             self.targets.append(tokenized_targets)
 
-# T5 Finetuner
-class T5FineTuner(pl.LightningModule):
-    def __init__(self, hparams, t5model, t5tokenizer, train_dataset, validation_dataset, test_dataset):
-        super(T5FineTuner, self).__init__()
-        #self.hparams = hparams #https://github.com/PyTorchLightning/pytorch-lightning/discussions/7525
-        self.save_hyperparameters(hparams)
-        self.model = t5model
-        self.tokenizer = t5tokenizer
-        self.train_dataset = train_dataset
-        self.validation_dataset = validation_dataset
-        self.test_dataset = test_dataset
-
-    def forward( self, input_ids, attention_mask=None, decoder_input_ids=None, decoder_attention_mask=None, lm_labels=None):
-         outputs = self.model(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            decoder_attention_mask=decoder_attention_mask,
-            labels=lm_labels,
-        )
-         return outputs
-
-    def training_step(self, batch, batch_idx):
-        outputs = self.forward(
-            input_ids=batch["source_ids"],
-            attention_mask=batch["source_mask"],
-            decoder_input_ids = batch["target_ids"],
-            decoder_attention_mask=batch['target_mask'],
-            lm_labels=batch['labels']
-        )
-        loss = outputs[0]
-        self.log('train_loss3', loss, on_step=False, on_epoch=True, logger=True)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        outputs = self.forward(
-            input_ids=batch["source_ids"],
-            attention_mask=batch["source_mask"],
-            decoder_input_ids = batch["target_ids"],
-            decoder_attention_mask=batch['target_mask'],
-            lm_labels=batch['labels']
-        )
-
-        loss = outputs[0]
-        self.log("val_loss3", loss, on_step=False, on_epoch=True, logger=True)
-        return loss
-
-    def test_step(self, batch, batch_idx):
-        outputs = self.forward(
-            input_ids=batch["source_ids"],
-            attention_mask=batch["source_mask"],
-            decoder_input_ids = batch["target_ids"],
-            decoder_attention_mask=batch['target_mask'],
-            lm_labels=batch['labels']
-        )
-
-        loss = outputs[0]
-        self.log("test_loss3", loss, on_step=False, on_epoch=True, logger=True)
-        return loss
-
-    def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    def val_dataloader(self):
-        return DataLoader(self.validation_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    def configure_optimizers(self):
-        optimizer = AdamW(self.parameters(), lr=3e-4, eps=1e-8)
-        return optimizer
-
-def generate(qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, context: str) -> str:
-    source_encoding = tokenizer(
-        "context: " + context + " " + "answer: " + answer + " </s>",
-        max_length=64,
-        padding='max_length',
-        truncation=True,
-        return_attention_mask=True,
-        add_special_tokens=True,
-        return_tensors='pt'
-    )
-
-    generated_ids = qgmodel.model.generate(
-        input_ids=source_encoding['input_ids'],
-        attention_mask=source_encoding['attention_mask'],
-        num_beams=1,
-        max_length=72,
-        repetition_penalty=2.5,
-        length_penalty=1.0,
-        early_stopping=True,
-        use_cache=True
-    )
-
-    preds = {
-        tokenizer.decode(generated_id, skip_special_tokens=False, clean_up_tokenization_spaces=True)
-        for generated_id in generated_ids
-    }
-
-    return ''.join(preds)
-
-def show_result(generated: str, answer: str, context:str, original_question: str = ''):
-    print('Generated: ', generated)
-    if original_question:
-        print('Original : ', original_question)
-
-    print()
-    print('Answer: ', answer)
-    print('Conext: ', context)
-    print('-----------------------------')
-
 def run():
     #torch.multiprocessing.freeze_support()
     pl.seed_everything(42)
@@ -231,7 +123,7 @@ def run():
 
     args = argparse.Namespace(**args_dict)
 
-    model = T5FineTuner(args, t5_model, t5_tokenizer, train_dataset, validation_dataset, test_dataset)
+    model = T5FineTuner2(args, t5_model, t5_tokenizer, train_dataset, validation_dataset, test_dataset)
 
     checkpoint_callback = ModelCheckpoint(
         dirpath="checkpoints", #save at this folder
@@ -242,27 +134,20 @@ def run():
         mode="min" #save the model with minimum validation loss
     )
 
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir="tb_logs")
+    csv_logger = pl_loggers.CSVLogger(save_dir="csv_logs")
+
     trainer = pl.Trainer(
         callbacks = [checkpoint_callback],
         max_epochs = 3, 
-        gpus=1
+        gpus=1,
+        logger = [tb_logger, csv_logger]
     ) #progress_bar_refresh_rate=30
 
     trainer.fit(model)
     trainer.test(ckpt_path='best')
     #trainer.test(ckpt_path=trainer.model_checkpoint.last_model_path)
 
-    #checkpoint_path = 'checkpoints/best-checkpoint.ckpt'
-    #best_model = T5FineTuner.load_from_checkpoint(checkpoint_path)
-    #best_model.freeze()
-    #best_model.eval()
-    #print()
-
-    #context = 'Oxygen is the chemical element with the symbol O and atomic number 8.'
-    #answer = 'Oxygen'
-
-    #generated = generate(best_model, t5_tokenizer, answer, context)
-    #show_result(generated, answer, context)
 
     print ("Saving model")
     save_path_model = '../../model/'
