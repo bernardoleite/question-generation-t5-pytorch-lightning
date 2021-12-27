@@ -42,10 +42,10 @@ class QGDataModule(pl.LightningDataModule):
     def __init__(
         self,
         args,
+        tokenizer: T5Tokenizer,
         train_df: pd.DataFrame,
         val_df: pd.DataFrame,
-        test_df: pd.DataFrame,
-        tokenizer: T5Tokenizer
+        test_df: pd.DataFrame
         ): 
         super().__init__()
         self.tokenizer = tokenizer
@@ -57,9 +57,13 @@ class QGDataModule(pl.LightningDataModule):
         self.max_len_output = args.max_len_output
 
     def setup(self):
-        self.train_dataset = QuestionGenerationDataset('../../data/squad_v1_train.csv', self.tokenizer, self.max_len_input, self.max_len_output)
-        self.validation_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output)
-        self.test_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output) # change test_file_path!!!!!!!!!!!
+        #self.train_dataset = QuestionGenerationDataset('../../data/squad_v1_train.csv', self.tokenizer, self.max_len_input, self.max_len_output)
+        #self.validation_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output)
+        #self.test_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output) # change test_file_path!!!!!!!!!!!
+
+        self.train_dataset = QGDataset(self.train_df, self.tokenizer, self.max_len_input, self.max_len_output)
+        self.validation_dataset = QGDataset(self.val_df, self.tokenizer, self.max_len_input, self.max_len_output)
+        self.test_dataset = QGDataset(self.test_df, self.tokenizer, self.max_len_input, self.max_len_output) # change test_file_path!!!!!!!!!!!
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size = self.batch_size, shuffle=True, num_workers = 4) # why 4?
@@ -69,6 +73,63 @@ class QGDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size = 4, num_workers = 4) # why 4?,  batch_size = 1 ?
+
+class QGDataset(Dataset):
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        tokenizer: T5Tokenizer,
+        max_len_input: int,
+        max_len_output: int
+        ):
+
+        self.tokenizer = tokenizer
+        self.data = data
+        self.max_len_input = max_len_input
+        self.max_len_output = max_len_output
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index: int):
+        data_row = self.data.iloc[index]
+
+        # tokenize inputs
+        source_encoding = self.tokenizer(
+            data_row['answer'],
+            data_row['context'],
+            truncation = 'only_second',
+            add_special_tokens=True,
+            max_length=self.max_len_input, 
+            padding='max_length', 
+            return_tensors="pt"
+        )
+        # tokenize targets
+        target_encoding = self.tokenizer(
+            data_row['question'], 
+            truncation = True,
+            add_special_tokens=True,
+            max_length=self.max_len_output, 
+            padding='max_length',
+            return_tensors="pt"
+        )
+
+        labels = target_encoding['input_ids']
+        labels[labels==0] = -100
+
+        return dict(
+            #question=data_row['question'],
+            #context=data_row['context'],
+            #answer_text=data_row['answer'],
+
+            source_ids = source_encoding["input_ids"].flatten(),
+            target_ids = target_encoding["input_ids"].flatten(),
+
+            source_mask = source_encoding['attention_mask'].flatten(),
+            target_mask = target_encoding['attention_mask'].flatten(),
+
+            labels=labels.flatten()
+        )
 
 # Prepare Dataset Structure
 class QuestionGenerationDataset(Dataset):
@@ -143,10 +204,6 @@ def run():
     t5_model = T5ForConditionalGeneration.from_pretrained('t5-base')
   
     print("Repete--------------------->\n")
-
-    #train_dataset = QuestionGenerationDataset(t5_tokenizer, '../../data/squad_v1_train.csv')
-    #validation_dataset = QuestionGenerationDataset(t5_tokenizer, '../../data/squad_v1_val.csv')
-    #test_dataset = QuestionGenerationDataset(t5_tokenizer, '../../data/squad_v1_val.csv') # change test_file_path!!!!!!!!!!!
 
     # Training...
     args_dict = dict(
