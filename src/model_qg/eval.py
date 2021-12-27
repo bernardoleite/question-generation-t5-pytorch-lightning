@@ -1,5 +1,11 @@
 from models import T5FineTuner2
-from transformers import T5Tokenizer
+
+from transformers import (
+    T5ForConditionalGeneration,
+    T5Tokenizer
+)
+
+import argparse
 
 def generate(qgmodel: T5FineTuner2, tokenizer: T5Tokenizer,  answer: str, context: str) -> str:
     source_encoding = tokenizer(
@@ -43,8 +49,17 @@ def show_result(generated: str, answer: str, context:str, original_question: str
 
 def run():
     t5_tokenizer = T5Tokenizer.from_pretrained('t5-base')
+    t5_model = T5ForConditionalGeneration.from_pretrained('t5-base')
+
+    args_dict = dict(
+        batch_size= 4,
+        max_len_input = 64,
+        max_len_output = 96
+    )
+    args = argparse.Namespace(**args_dict)
+
     checkpoint_path = "checkpoints/best-checkpoint.ckpt"
-    best_model = T5FineTuner2.load_from_checkpoint(checkpoint_path)
+    best_model = T5FineTuner2.load_from_checkpoint(checkpoint_path, hparams=args, t5model=t5_model, t5tokenizer=t5_tokenizer)
     best_model.freeze()
     best_model.eval()
 

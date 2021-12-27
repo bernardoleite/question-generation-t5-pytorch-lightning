@@ -9,15 +9,15 @@ from transformers import (
 
 # T5 Finetuner
 class T5FineTuner2(pl.LightningModule):
-    def __init__(self, hparams, t5model, t5tokenizer, train_dataset, validation_dataset, test_dataset):
+    def __init__(self, hparams, t5model, t5tokenizer): #, train_dataset, validation_dataset, test_dataset
         super(T5FineTuner2, self).__init__()
         #self.hparams = hparams #https://github.com/PyTorchLightning/pytorch-lightning/discussions/7525
         self.save_hyperparameters(hparams)
         self.model = t5model
         self.tokenizer = t5tokenizer
-        self.train_dataset = train_dataset
-        self.validation_dataset = validation_dataset
-        self.test_dataset = test_dataset
+        #self.train_dataset = train_dataset
+        #self.validation_dataset = validation_dataset
+        #self.test_dataset = test_dataset
 
     def forward( self, input_ids, attention_mask=None, decoder_input_ids=None, decoder_attention_mask=None, lm_labels=None):
          outputs = self.model(
@@ -66,15 +66,15 @@ class T5FineTuner2(pl.LightningModule):
         self.log("test_loss3", loss, on_step=False, on_epoch=True, logger=True)
         return loss
 
-    def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    def val_dataloader(self):
-        return DataLoader(self.validation_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
     def configure_optimizers(self):
         optimizer = AdamW(self.parameters(), lr=3e-4, eps=1e-8)
         return optimizer
+
+    #def train_dataloader(self):
+        #return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
+
+    #def val_dataloader(self):
+        #return DataLoader(self.validation_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
+
+    #def test_dataloader(self):
+        #return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?

@@ -10,6 +10,7 @@ import sys
 from itertools import chain
 from string import punctuation
 from pprint import pprint
+from torch.utils import data
 from tqdm import tqdm
 
 import copy
@@ -36,9 +37,42 @@ from models import T5FineTuner2
 # forrtl: error (200): program aborting due to control-C event
 os.environ['FOR_DISABLE_CONSOLE_CTRL_HANDLER'] = '1'
 
+class QGDataModule(pl.LightningDataModule):
+
+    def __init__(
+        self,
+        args,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
+        test_df: pd.DataFrame,
+        tokenizer: T5Tokenizer
+        ): 
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.train_df = train_df
+        self.val_df = val_df
+        self.test_df = test_df
+        self.batch_size = args.batch_size
+        self.max_len_input = args.max_len_input
+        self.max_len_output = args.max_len_output
+
+    def setup(self):
+        self.train_dataset = QuestionGenerationDataset('../../data/squad_v1_train.csv', self.tokenizer, self.max_len_input, self.max_len_output)
+        self.validation_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output)
+        self.test_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output) # change test_file_path!!!!!!!!!!!
+
+    def train_dataloader(self):
+        return DataLoader(self.train_dataset, batch_size = self.batch_size, shuffle=True, num_workers = 4) # why 4?
+
+    def val_dataloader(self): 
+        return DataLoader(self.validation_dataset, batch_size = self.batch_size, num_workers = 4) # why 4?,   batch_size = 1 ?
+
+    def test_dataloader(self):
+        return DataLoader(self.test_dataset, batch_size = 4, num_workers = 4) # why 4?,  batch_size = 1 ?
+
 # Prepare Dataset Structure
 class QuestionGenerationDataset(Dataset):
-    def __init__(self, tokenizer, filepath, max_len_inp=64,max_len_out=96):
+    def __init__(self, filepath, tokenizer, max_len_inp=64, max_len_out=96):
         self.path = filepath
 
         self.passage_column = "context"
@@ -83,6 +117,7 @@ class QuestionGenerationDataset(Dataset):
                 answer,
                 passage,
                 truncation = 'only_second',
+                add_special_tokens=True,
                 max_length=self.max_len_input, 
                 padding='max_length', 
                 return_tensors="pt"
@@ -91,6 +126,7 @@ class QuestionGenerationDataset(Dataset):
             tokenized_targets = self.tokenizer(
                 target, 
                 truncation = True,
+                add_special_tokens=True,
                 max_length=self.max_len_output, 
                 padding='max_length',
                 return_tensors="pt"
@@ -103,27 +139,25 @@ def run():
     #torch.multiprocessing.freeze_support()
     pl.seed_everything(42)
 
-    train_file_path = '../../data/squad_v1_train.csv'
-    validation_file_path = '../../data/squad_v1_val.csv'
-    test_file_path = '../../data/squad_v1_val.csv' # change path!!!!!!!!!
-
     t5_tokenizer = T5Tokenizer.from_pretrained('t5-base')
     t5_model = T5ForConditionalGeneration.from_pretrained('t5-base')
   
     print("Repete--------------------->\n")
 
-    train_dataset = QuestionGenerationDataset(t5_tokenizer, train_file_path)
-    validation_dataset = QuestionGenerationDataset(t5_tokenizer, validation_file_path)
-    test_dataset = QuestionGenerationDataset(t5_tokenizer, test_file_path) # change test_file_path!!!!!!!!!!!
+    #train_dataset = QuestionGenerationDataset(t5_tokenizer, '../../data/squad_v1_train.csv')
+    #validation_dataset = QuestionGenerationDataset(t5_tokenizer, '../../data/squad_v1_val.csv')
+    #test_dataset = QuestionGenerationDataset(t5_tokenizer, '../../data/squad_v1_val.csv') # change test_file_path!!!!!!!!!!!
 
     # Training...
     args_dict = dict(
-        batch_size=4
+        batch_size= 4,
+        max_len_input = 64,
+        max_len_output = 96
     )
 
     args = argparse.Namespace(**args_dict)
 
-    model = T5FineTuner2(args, t5_model, t5_tokenizer, train_dataset, validation_dataset, test_dataset)
+    model = T5FineTuner2(args, t5_model, t5_tokenizer) # , train_dataset, validation_dataset, test_dataset
 
     checkpoint_callback = ModelCheckpoint(
         dirpath="checkpoints", #save at this folder
@@ -144,10 +178,17 @@ def run():
         logger = [tb_logger, csv_logger]
     ) #progress_bar_refresh_rate=30
 
-    trainer.fit(model)
-    trainer.test(ckpt_path='best')
-    #trainer.test(ckpt_path=trainer.model_checkpoint.last_model_path)
+    train_df = pd.read_csv('../../data/squad_v1_train.csv')
+    validation_df = pd.read_csv('../../data/squad_v1_val.csv')
+    test_df = pd.read_csv('../../data/squad_v1_val.csv')
 
+    data_module = QGDataModule(args, t5_tokenizer, train_df, validation_df, test_df)
+    data_module.setup()
+
+    trainer.fit(model, datamodule=data_module)
+    trainer.test(ckpt_path="best", datamodule=data_module)
+    #trainer.test(ckpt_path='best', dataloaders = data_module.test_dataloader)
+    #trainer.test(ckpt_path=trainer.model_checkpoint.last_model_path)
 
     print ("Saving model")
     save_path_model = '../../model/'
