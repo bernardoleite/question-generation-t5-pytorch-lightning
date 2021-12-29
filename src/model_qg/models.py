@@ -8,9 +8,9 @@ from transformers import (
 )
 
 # T5 Finetuner
-class T5FineTuner2(pl.LightningModule):
+class T5FineTuner(pl.LightningModule):
     def __init__(self, hparams, t5model, t5tokenizer): #, train_dataset, validation_dataset, test_dataset
-        super(T5FineTuner2, self).__init__()
+        super(T5FineTuner, self).__init__()
         #self.hparams = hparams #https://github.com/PyTorchLightning/pytorch-lightning/discussions/7525
         self.save_hyperparameters(hparams)
         self.model = t5model
@@ -19,6 +19,7 @@ class T5FineTuner2(pl.LightningModule):
         #self.validation_dataset = validation_dataset
         #self.test_dataset = test_dataset
 
+    # you might get even better performance by passing decoder_attention_mask when training your model from https://youtu.be/r6XY80Z9eSA
     def forward( self, input_ids, attention_mask=None, decoder_input_ids=None, decoder_attention_mask=None, lm_labels=None):
          outputs = self.model(
             input_ids=input_ids,
@@ -37,7 +38,7 @@ class T5FineTuner2(pl.LightningModule):
             lm_labels=batch['labels']
         )
         loss = outputs[0]
-        self.log('train_loss3', loss, on_step=False, on_epoch=True, logger=True)
+        self.log('train_loss', loss, on_step=False, on_epoch=True, logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -50,7 +51,7 @@ class T5FineTuner2(pl.LightningModule):
         )
 
         loss = outputs[0]
-        self.log("val_loss3", loss, on_step=False, on_epoch=True, logger=True)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -63,7 +64,7 @@ class T5FineTuner2(pl.LightningModule):
         )
 
         loss = outputs[0]
-        self.log("test_loss3", loss, on_step=False, on_epoch=True, logger=True)
+        self.log("test_loss", loss, on_step=False, on_epoch=True, logger=True)
         return loss
 
     def configure_optimizers(self):

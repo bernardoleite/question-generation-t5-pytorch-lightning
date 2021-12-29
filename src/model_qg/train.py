@@ -31,7 +31,7 @@ from transformers import (
     get_linear_schedule_with_warmup
 )
 
-from models import T5FineTuner2
+from models import T5FineTuner
 
 # need this because of the following error:
 # forrtl: error (200): program aborting due to control-C event
@@ -100,6 +100,7 @@ class QGDataset(Dataset):
             data_row['context'],
             truncation = 'only_second',
             add_special_tokens=True,
+            return_overflowing_tokens = True, # if (source_encoding.num_truncated_tokens.item() > 0): !!!!!!!! (future)
             max_length=self.max_len_input, 
             padding='max_length', 
             return_tensors="pt"
@@ -118,6 +119,7 @@ class QGDataset(Dataset):
         labels[labels==0] = -100
 
         return dict(
+            # commented code because of this problem: https://github.com/PyTorchLightning/pytorch-lightning/issues/10349
             #question=data_row['question'],
             #context=data_row['context'],
             #answer_text=data_row['answer'],
@@ -207,21 +209,21 @@ def run():
 
     # Training...
     args_dict = dict(
-        batch_size= 4,
+        batch_size = 4,
         max_len_input = 64,
         max_len_output = 96
     )
 
     args = argparse.Namespace(**args_dict)
 
-    model = T5FineTuner2(args, t5_model, t5_tokenizer) # , train_dataset, validation_dataset, test_dataset
+    model = T5FineTuner(args, t5_model, t5_tokenizer) # , train_dataset, validation_dataset, test_dataset
 
     checkpoint_callback = ModelCheckpoint(
         dirpath="checkpoints", #save at this folder
         filename="best-checkpoint", #name for the checkpoint
         save_top_k=1, #save only the best one
         verbose=True, #output something when a model is saved
-        monitor="val_loss3", #monitor the validation loss
+        monitor="val_loss", #monitor the validation loss
         mode="min" #save the model with minimum validation loss
     )
 
@@ -231,7 +233,7 @@ def run():
     trainer = pl.Trainer(
         callbacks = [checkpoint_callback],
         max_epochs = 3, 
-        gpus=1,
+        gpus = 1,
         logger = [tb_logger, csv_logger]
     ) #progress_bar_refresh_rate=30
 
@@ -247,13 +249,12 @@ def run():
     #trainer.test(ckpt_path='best', dataloaders = data_module.test_dataloader)
     #trainer.test(ckpt_path=trainer.model_checkpoint.last_model_path)
 
-    print ("Saving model")
-    save_path_model = '../../model/'
-    save_path_tokenizer = '../../tokenizer/'
-    model.model.save_pretrained(save_path_model)
-    t5_tokenizer.save_pretrained(save_path_tokenizer)
-
+    # Only saves the last state model
+    #print ("Saving model")
+    #save_path_model = '../../model/'
+    #save_path_tokenizer = '../../tokenizer/'
+    #model.model.save_pretrained(save_path_model)
+    #t5_tokenizer.save_pretrained(save_path_tokenizer)
 
 if __name__ == '__main__':
     run()
-    #shuffle!!!!!!!!!!!!!!!!
