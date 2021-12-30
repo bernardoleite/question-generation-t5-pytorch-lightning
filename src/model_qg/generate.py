@@ -76,11 +76,10 @@ def run(args):
     test_df = pd.read_pickle(args.test_df_path)
 
     predictions = []
-    test_df = test_df.sample(n=20) # to delete !!!!!!!!!!!!!!
+    #test_df = test_df.sample(n=20) # to delete !!!!!!!!!!!!!!
 
     for index, row in test_df.iterrows():
-        #generated = generate(args, best_model, t5_tokenizer, row['answer'], row['context'])
-        generated = "oi gato" # to delete
+        generated = generate(args, best_model, t5_tokenizer, row['answer'], row['context'])
 
         predictions.append(
             {'context': row['context'],
@@ -110,7 +109,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-mp','--checkpoint_path', type=str, metavar='', default="checkpoints/best-checkpoint.ckpt", required=True, help='Model checkpoint path.')
+    parser.add_argument('-cp','--checkpoint_path', type=str, metavar='', default="checkpoints/best-checkpoint.ckpt", required=True, help='Model checkpoint path.')
     parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/test_df.pkl", required=False, help='Test dataframe path.')
 
     parser.add_argument('-bs','--batch_size', type=int, metavar='', default=4, required=True, help='Batch size.')

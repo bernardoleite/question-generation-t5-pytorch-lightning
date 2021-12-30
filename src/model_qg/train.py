@@ -58,13 +58,9 @@ class QGDataModule(pl.LightningDataModule):
         self.max_len_output = params.max_len_output
 
     def setup(self):
-        #self.train_dataset = QuestionGenerationDataset('../../data/squad_v1_train.csv', self.tokenizer, self.max_len_input, self.max_len_output)
-        #self.validation_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output)
-        #self.test_dataset = QuestionGenerationDataset('../../data/squad_v1_val.csv', self.tokenizer, self.max_len_input, self.max_len_output) # change test_file_path!!!!!!!!!!!
-
         self.train_dataset = QGDataset(self.train_df, self.tokenizer, self.max_len_input, self.max_len_output)
         self.validation_dataset = QGDataset(self.val_df, self.tokenizer, self.max_len_input, self.max_len_output)
-        self.test_dataset = QGDataset(self.test_df, self.tokenizer, self.max_len_input, self.max_len_output) # change test_file_path!!!!!!!!!!!
+        self.test_dataset = QGDataset(self.test_df, self.tokenizer, self.max_len_input, self.max_len_output)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size = self.batch_size, shuffle=True, num_workers = 4) # why 4?
@@ -240,9 +236,9 @@ def run(args):
         logger = [tb_logger, csv_logger]
     ) #progress_bar_refresh_rate=30
 
-    train_df = pd.read_csv('../../data/squad_v1_train.csv') # PUT ARGS !!!!!!!!!
-    validation_df = pd.read_csv('../../data/squad_v1_val.csv') # PUT ARGS !!!!!!!!!
-    test_df = pd.read_csv('../../data/squad_v1_val.csv') # PUT ARGS !!!!!!!!!
+    train_df = pd.read_pickle("../../data/du_2017_split/raw/dataframe/train_df.pkl")
+    validation_df = pd.read_pickle("../../data/du_2017_split/raw/dataframe/validation_df.pkl")
+    test_df = pd.read_pickle("../../data/du_2017_split/raw/dataframe/test_df.pkl")
 
     data_module = QGDataModule(params, t5_tokenizer, train_df, validation_df, test_df)
     data_module.setup()
