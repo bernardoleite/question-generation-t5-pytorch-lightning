@@ -243,6 +243,8 @@ def run(args):
     data_module = QGDataModule(params, t5_tokenizer, train_df, validation_df, test_df)
     data_module.setup()
 
+    start_time_train = time.time()
+
     trainer.fit(model, datamodule=data_module)
     trainer.test(ckpt_path="best", datamodule=data_module)
     #trainer.test(ckpt_path='best', dataloaders = data_module.test_dataloader)
@@ -254,6 +256,10 @@ def run(args):
     #save_path_tokenizer = '../../tokenizer/'
     #model.model.save_pretrained(save_path_model)
     #t5_tokenizer.save_pretrained(save_path_tokenizer)
+
+    end_time_train = time.time()
+    train_total_time = end_time_train - start_time_train
+    print("Training time: ", train_total_time)
 
 if __name__ == '__main__':
     # Initialize the Parser
