@@ -6,18 +6,17 @@ from transformers import (
     T5Tokenizer,
     get_linear_schedule_with_warmup
 )
+import sys
 
 # T5 Finetuner
 class T5FineTuner(pl.LightningModule):
-    def __init__(self, hparams, t5model, t5tokenizer): #, train_dataset, validation_dataset, test_dataset
+    def __init__(self, hparams, t5model, t5tokenizer):
         super(T5FineTuner, self).__init__()
         #self.hparams = hparams #https://github.com/PyTorchLightning/pytorch-lightning/discussions/7525
+        self.args = hparams
         self.save_hyperparameters(hparams)
         self.model = t5model
         self.tokenizer = t5tokenizer
-        #self.train_dataset = train_dataset
-        #self.validation_dataset = validation_dataset
-        #self.test_dataset = test_dataset
 
     # you might get even better performance by passing decoder_attention_mask when training your model from https://youtu.be/r6XY80Z9eSA
     def forward( self, input_ids, attention_mask=None, decoder_input_ids=None, decoder_attention_mask=None, lm_labels=None):
@@ -68,14 +67,8 @@ class T5FineTuner(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.parameters(), lr=3e-4, eps=1e-8)
+        if self.args.optimizer == 'AdamW':
+            optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)
+        else:
+            optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)
         return optimizer
-
-    #def train_dataloader(self):
-        #return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    #def val_dataloader(self):
-        #return DataLoader(self.validation_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?
-
-    #def test_dataloader(self):
-        #return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size,num_workers=4) # why 4?

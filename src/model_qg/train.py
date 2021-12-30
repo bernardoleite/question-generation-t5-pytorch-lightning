@@ -7,6 +7,7 @@ import logging
 import random
 import re
 import sys
+from sys import platform
 from itertools import chain
 from string import punctuation
 from pprint import pprint
@@ -41,7 +42,7 @@ class QGDataModule(pl.LightningDataModule):
 
     def __init__(
         self,
-        args,
+        params,
         tokenizer: T5Tokenizer,
         train_df: pd.DataFrame,
         val_df: pd.DataFrame,
@@ -52,9 +53,9 @@ class QGDataModule(pl.LightningDataModule):
         self.train_df = train_df
         self.val_df = val_df
         self.test_df = test_df
-        self.batch_size = args.batch_size
-        self.max_len_input = args.max_len_input
-        self.max_len_output = args.max_len_output
+        self.batch_size = params.batch_size
+        self.max_len_input = params.max_len_input
+        self.max_len_output = params.max_len_output
 
     def setup(self):
         #self.train_dataset = QuestionGenerationDataset('../../data/squad_v1_train.csv', self.tokenizer, self.max_len_input, self.max_len_output)
@@ -198,25 +199,27 @@ class QuestionGenerationDataset(Dataset):
             self.inputs.append(tokenized_inputs)
             self.targets.append(tokenized_targets)
 
-def run():
-    #torch.multiprocessing.freeze_support()
+def run(args):
     pl.seed_everything(42)
 
     t5_tokenizer = T5Tokenizer.from_pretrained('t5-base')
     t5_model = T5ForConditionalGeneration.from_pretrained('t5-base')
-  
-    print("Repete--------------------->\n")
 
     # Training...
-    args_dict = dict(
-        batch_size = 4,
-        max_len_input = 64,
-        max_len_output = 96
+    params_dict = dict(
+        max_len_input = args.max_len_input,
+        max_len_output = args.max_len_output,
+        max_epochs = args.max_epochs,
+        batch_size = args.batch_size,
+        patience = args.patience,
+        optimizer = args.optimizer,
+        learning_rate = args.learning_rate,
+        epsilon = args.epsilon
     )
 
-    args = argparse.Namespace(**args_dict)
+    params = argparse.Namespace(**params_dict)
 
-    model = T5FineTuner(args, t5_model, t5_tokenizer) # , train_dataset, validation_dataset, test_dataset
+    model = T5FineTuner(params, t5_model, t5_tokenizer) # , train_dataset, validation_dataset, test_dataset
 
     checkpoint_callback = ModelCheckpoint(
         dirpath="checkpoints", #save at this folder
@@ -232,16 +235,16 @@ def run():
 
     trainer = pl.Trainer(
         callbacks = [checkpoint_callback],
-        max_epochs = 3, 
-        gpus = 1,
+        max_epochs = args.max_epochs, 
+        gpus = args.num_gpus,
         logger = [tb_logger, csv_logger]
     ) #progress_bar_refresh_rate=30
 
-    train_df = pd.read_csv('../../data/squad_v1_train.csv')
-    validation_df = pd.read_csv('../../data/squad_v1_val.csv')
-    test_df = pd.read_csv('../../data/squad_v1_val.csv')
+    train_df = pd.read_csv('../../data/squad_v1_train.csv') # PUT ARGS !!!!!!!!!
+    validation_df = pd.read_csv('../../data/squad_v1_val.csv') # PUT ARGS !!!!!!!!!
+    test_df = pd.read_csv('../../data/squad_v1_val.csv') # PUT ARGS !!!!!!!!!
 
-    data_module = QGDataModule(args, t5_tokenizer, train_df, validation_df, test_df)
+    data_module = QGDataModule(params, t5_tokenizer, train_df, validation_df, test_df)
     data_module.setup()
 
     trainer.fit(model, datamodule=data_module)
@@ -257,4 +260,28 @@ def run():
     #t5_tokenizer.save_pretrained(save_path_tokenizer)
 
 if __name__ == '__main__':
-    run()
+    # Initialize the Parser
+    parser = argparse.ArgumentParser(description = 'Fine tune T5 for Question Generation.')
+
+    # Add arguments
+    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/train_df.pkl", required=False, help='Train dataframe path.')
+    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/validation_df.pkl", required=False, help='Validation dataframe path.')
+    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/test_df.pkl", required=False, help='Test dataframe path.')
+
+    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=64, required=True, help='Max len input for encoding.')
+    parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=True, help='Max len output for encoding.')
+
+    parser.add_argument('-me','--max_epochs', type=int, default=3, metavar='', required=True, help='Number of max Epochs')
+    parser.add_argument('-bs','--batch_size', type=int, default=4, metavar='', required=True, help='Batch size.')
+    parser.add_argument('-ptc','--patience', type=int, default=3, metavar='', required=False, help='Patience') # it is not being used for now
+    parser.add_argument('-o','--optimizer', type=str, default='AdamW', metavar='', required=False, help='Optimizer')
+    parser.add_argument('-lr','--learning_rate', type=float, default=3e-4, metavar='', required=False, help='The learning rate to use.')
+    parser.add_argument('-eps','--epsilon', type=float, default=1e-8, metavar='', required=False, help='Adams epsilon for numerical stability')
+
+    parser.add_argument('-ng','--num_gpus', type=int, default=1, metavar='', required=True, help='Number of gpus.')
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Start training
+    run(args)
