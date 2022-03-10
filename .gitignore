@@ -1,6 +1,7 @@
 # Specific files and folders
 tokenizer/
 model/
+data/squad_br
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
