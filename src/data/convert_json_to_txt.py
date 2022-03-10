@@ -6,6 +6,7 @@ import sys
 import argparse
 sys.path.append('../')
 import pandas as pd
+from nltk.tokenize import word_tokenize
 
 def run(args):
     folder_path = args.folder_path
@@ -16,6 +17,8 @@ def run(args):
     with open(file_path, encoding='utf-8') as file:
         predictions_json = json.load(file)
 
+    index_count = 0
+
     # Write to contexts.txt file
     #https://stackoverflow.com/questions/899103/writing-a-list-to-a-file-with-python/899176
     with open(folder_path + '/contexts.txt', 'w', encoding="utf-8") as f:
@@ -23,17 +26,27 @@ def run(args):
             context = item['context']
             if '\n' in context:
                 context = context.replace("\n", "") # hard coded fix! To be changed !!!!!!!!!!!!!!!!!!!
-            f.write("%s\n" % context)
+            words_tokenized = word_tokenize(context)
+            words_tokenized_lowercase = [each_string.lower() for each_string in words_tokenized] # lowercase
+            context = ' '.join(words_tokenized_lowercase)
+            f.write("%s\n" % index_count)
+            index_count = index_count + 1
 
     # Write to gt_questions.txt file
     with open(folder_path + '/gt_questions.txt', 'w', encoding="utf-8") as f:
         for item in predictions_json:
-            f.write("%s\n" % item['gt_question'])
+            words_tokenized = word_tokenize(item['gt_question'])
+            words_tokenized_lowercase = [each_string.lower() for each_string in words_tokenized] # lowercase
+            gt_question = ' '.join(words_tokenized_lowercase)
+            f.write("%s\n" % gt_question)
 
     # Write to gen_questions.txt file
     with open(folder_path + '/gen_questions.txt', 'w', encoding="utf-8") as f:
         for item in predictions_json:
-            f.write("%s\n" % item['gen_question'])
+            words_tokenized = word_tokenize(item['gen_question'])
+            words_tokenized_lowercase = [each_string.lower() for each_string in words_tokenized] # lowercase
+            gen_question = ' '.join(words_tokenized_lowercase)
+            f.write("%s\n" % gen_question)
 
     print("Predictions were saved in ", folder_path)
 
