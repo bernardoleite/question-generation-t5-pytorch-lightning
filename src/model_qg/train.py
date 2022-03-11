@@ -140,7 +140,6 @@ class QuestionGenerationDataset(Dataset):
         self.question = "question"
 
         self.data = pd.read_csv(self.path)
-        #self.data = pd.read_csv(self.path,nrows=1000)
 
         self.max_len_input = max_len_inp
         self.max_len_output = max_len_out
@@ -198,8 +197,8 @@ class QuestionGenerationDataset(Dataset):
 def run(args):
     pl.seed_everything(42)
 
-    t5_tokenizer = T5Tokenizer.from_pretrained('t5-base')
-    t5_model = T5ForConditionalGeneration.from_pretrained('t5-base')
+    t5_tokenizer = T5Tokenizer.from_pretrained(args.tokenizer_name)
+    t5_model = T5ForConditionalGeneration.from_pretrained(args.model_name)
 
     # Training...
     params_dict = dict(
@@ -236,9 +235,14 @@ def run(args):
         logger = [tb_logger, csv_logger]
     ) #progress_bar_refresh_rate=30
 
-    train_df = pd.read_pickle("../../data/du_2017_split/raw/dataframe/train_df.pkl")
-    validation_df = pd.read_pickle("../../data/du_2017_split/raw/dataframe/validation_df.pkl")
-    test_df = pd.read_pickle("../../data/du_2017_split/raw/dataframe/test_df.pkl")
+    train_df = pd.read_pickle(args.train_df_path)
+    validation_df = pd.read_pickle(args.validation_df_path)
+    test_df = pd.read_pickle(args.test_df_path)
+
+    # delete!!! just for fast testing
+    #train_df = pd.read_csv('../../data/squad_v1_train.csv')
+    #validation_df = pd.read_csv('../../data/squad_v1_val.csv')
+    #test_df = pd.read_csv('../../data/squad_v1_val.csv')
 
     data_module = QGDataModule(params, t5_tokenizer, train_df, validation_df, test_df)
     data_module.setup()
@@ -266,19 +270,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Fine tune T5 for Question Generation.')
 
     # Add arguments
-    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/train_df.pkl", required=False, help='Train dataframe path.')
-    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/validation_df.pkl", required=False, help='Validation dataframe path.')
-    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/test_df.pkl", required=False, help='Test dataframe path.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
+    
+    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/df_train_en.pkl", required=False, help='Train dataframe path.')
+    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/df_validation_en.pkl", required=False, help='Validation dataframe path.')
+    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/df_test_en.pkl", required=False, help='Test dataframe path.')
 
-    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=64, required=True, help='Max len input for encoding.')
+    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=True, help='Max len input for encoding.')
     parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=True, help='Max len output for encoding.')
 
-    parser.add_argument('-me','--max_epochs', type=int, default=3, metavar='', required=True, help='Number of max Epochs')
-    parser.add_argument('-bs','--batch_size', type=int, default=4, metavar='', required=True, help='Batch size.')
+    parser.add_argument('-me','--max_epochs', type=int, default=10, metavar='', required=True, help='Number of max Epochs')
+    parser.add_argument('-bs','--batch_size', type=int, default=32, metavar='', required=True, help='Batch size.')
     parser.add_argument('-ptc','--patience', type=int, default=3, metavar='', required=False, help='Patience') # it is not being used for now
     parser.add_argument('-o','--optimizer', type=str, default='AdamW', metavar='', required=False, help='Optimizer')
-    parser.add_argument('-lr','--learning_rate', type=float, default=3e-4, metavar='', required=False, help='The learning rate to use.')
-    parser.add_argument('-eps','--epsilon', type=float, default=1e-8, metavar='', required=False, help='Adams epsilon for numerical stability')
+    parser.add_argument('-lr','--learning_rate', type=float, default=1e-4, metavar='', required=False, help='The learning rate to use.')
+    parser.add_argument('-eps','--epsilon', type=float, default=1e-6, metavar='', required=False, help='Adam epsilon for numerical stability')
 
     parser.add_argument('-ng','--num_gpus', type=int, default=1, metavar='', required=True, help='Number of gpus.')
 

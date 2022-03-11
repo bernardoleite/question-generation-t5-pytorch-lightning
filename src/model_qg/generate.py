@@ -13,6 +13,7 @@ from utils import currentdate
 import time
 import os
 import json
+import torch
 
 def generate(args, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, context: str) -> str:
 
@@ -27,9 +28,18 @@ def generate(args, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, c
         return_tensors='pt'
     )
 
+    # Put model in gpu (if possible) or cpu (if not possible) for inference purpose
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    qgmodel = qgmodel.to(device)
+    print ("Device for inference:", device)
+
+    # Put this in GPU (faster than using cpu)
+    input_ids = source_encoding['input_ids'].to(device)
+    attention_mask = source_encoding['attention_mask'].to(device)
+
     generated_ids = qgmodel.model.generate(
-        input_ids=source_encoding['input_ids'],
-        attention_mask=source_encoding['attention_mask'],
+        input_ids=input_ids,
+        attention_mask=attention_mask,
         num_return_sequences=args.num_return_sequences, # defaults to 1
         num_beams=args.num_beams, # defaults to 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! myabe experiment with 5
         max_length=args.max_len_output,
@@ -49,7 +59,7 @@ def generate(args, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, c
 def show_result(generated: str, answer: str, context:str, original_question: str = ''):
     print('Generated: ', generated)
     if original_question:
-        print('Original : ', original_question)
+        print('Original: ', original_question)
 
     print()
     print('Answer: ', answer)
@@ -57,7 +67,7 @@ def show_result(generated: str, answer: str, context:str, original_question: str
     print('-----------------------------')
 
 def run(args):
-
+    # Load args (needed for model init)
     params_dict = dict(
         batch_size = args.batch_size,
         max_len_input = args.max_len_input,
@@ -65,32 +75,51 @@ def run(args):
     )
     params = argparse.Namespace(**params_dict)
 
-    t5_tokenizer = T5Tokenizer.from_pretrained('t5-base')
-    t5_model = T5ForConditionalGeneration.from_pretrained('t5-base')
+    # Load T5 base Tokenizer
+    t5_tokenizer = T5Tokenizer.from_pretrained(args.model_name)
+    # Load T5 base Model
+    t5_model = T5ForConditionalGeneration.from_pretrained(args.tokenizer_name)
+    # Load T5 fine-tuned model for QG
     checkpoint_path = args.checkpoint_path
-    best_model = T5FineTuner.load_from_checkpoint(checkpoint_path, hparams=params, t5model=t5_model, t5tokenizer=t5_tokenizer)
+    qgmodel = T5FineTuner.load_from_checkpoint(checkpoint_path, hparams=params, t5model=t5_model, t5tokenizer=t5_tokenizer)
 
-    best_model.freeze()
-    best_model.eval()
+    # Put model in freeze() and eval() model. Not sure the purpose of freeze
+    # Not sure if this should be after or before changing device for inference.
+    qgmodel.freeze()
+    qgmodel.eval()
 
+    # Read test data
     test_df = pd.read_pickle(args.test_df_path)
 
     predictions = []
     #test_df = test_df.sample(n=20) # to delete !!!!!!!!!!!!!!
 
+    # Generate questions and append predictions
+    start_time_generate = time.time()
+    printcounter = 0
     for index, row in test_df.iterrows():
-        generated = generate(args, best_model, t5_tokenizer, row['answer'], row['context'])
+        generated = generate(args, qgmodel, t5_tokenizer, row['answer'], row['context'])
 
         predictions.append(
             {'context': row['context'],
             'gt_question': row['question'],
             'answer': row['answer'],
-            'gen_question': generated} # to change !!!!!!!!
+            'gen_question': generated} # to change !!!!!!!! what?
         )
+        printcounter += 1
+        if (printcounter == 400):
+            print(str(printcounter) + " questions have been generated.")
+            printcounter = 0
         #show_result(generated, row['answer'], row['context'], row['question'])
 
     print("All predictions are completed.")
     print("Number of predictions (q-a-c triples): ", len(predictions))
+
+    end_time_generate = time.time()
+    gen_total_time = end_time_generate - start_time_generate
+    print("Inference time: ", gen_total_time)
+
+    # Save questions and answers to json file
 
     #https://stackoverflow.com/questions/273192/how-can-i-safely-create-a-nested-directory
     prediction_json_path = "../../predictions/" + currentdate()
@@ -112,11 +141,14 @@ if __name__ == '__main__':
     parser.add_argument('-cp','--checkpoint_path', type=str, metavar='', default="checkpoints/best-checkpoint.ckpt", required=True, help='Model checkpoint path.')
     parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/test_df.pkl", required=False, help='Test dataframe path.')
 
-    parser.add_argument('-bs','--batch_size', type=int, metavar='', default=4, required=True, help='Batch size.')
-    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=64, required=True, help='Max len input for encoding.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
+
+    parser.add_argument('-bs','--batch_size', type=int, metavar='', default=32, required=True, help='Batch size.')
+    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=True, help='Max len input for encoding.')
     parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=True, help='Max len output for encoding.')
 
-    parser.add_argument('-nb','--num_beams', type=int, metavar='', default=1, required=True, help='Number of beams.')
+    parser.add_argument('-nb','--num_beams', type=int, metavar='', default=5, required=True, help='Number of beams.')
     parser.add_argument('-nrs','--num_return_sequences', type=int, metavar='', default=1, required=True, help='Number of returned sequences.')
     parser.add_argument('-rp','--repetition_penalty', type=float, metavar='', default=1.0, required=False, help='Repetition Penalty.')
     parser.add_argument('-lp','--length_penalty', type=float, metavar='', default=1.0, required=False, help='Length Penalty.')

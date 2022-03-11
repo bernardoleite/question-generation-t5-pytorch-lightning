@@ -6,6 +6,8 @@ from transformers import (
     T5Tokenizer,
     get_linear_schedule_with_warmup
 )
+import torch
+from torch import nn, optim
 import sys
 
 # T5 Finetuner
@@ -23,6 +25,7 @@ class T5FineTuner(pl.LightningModule):
          outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
+            #decoder_input_ids = decoder_input_ids,
             decoder_attention_mask=decoder_attention_mask,
             labels=lm_labels,
         )
@@ -36,6 +39,11 @@ class T5FineTuner(pl.LightningModule):
             decoder_attention_mask=batch['target_mask'],
             lm_labels=batch['labels']
         )
+        # For decoding during training
+        #result = torch.argmax(outputs.logits, dim=-1)
+        #decoded_inputs = self.tokenizer.decode(result[0].flatten(), skip_special_tokens=False, clean_up_tokenization_spaces=False)
+        #print(decoded_inputs)
+
         loss = outputs[0]
         self.log('train_loss', loss, on_step=False, on_epoch=True, logger=True)
         return loss
@@ -72,3 +80,19 @@ class T5FineTuner(pl.LightningModule):
         else:
             optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)
         return optimizer
+
+    # Tomás Osório method
+"""     def configure_optimizers(self):
+        if self.args.optimizer == 'AdamW':
+            optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)
+            scheduler = {
+                'scheduler': optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.00001, steps_per_epoch=2698, epochs=20, pct_start=0.3),
+                'interval': 'step',
+            }
+        else:
+            optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)
+            scheduler = {
+                'scheduler': optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.00001, steps_per_epoch=2698, epochs=20, pct_start=0.3),
+                'interval': 'step',
+            }
+        return [optimizer], [scheduler] """
