@@ -270,12 +270,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Fine tune T5 for Question Generation.')
 
     # Add arguments
-    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
-    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
-    
-    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/df_train_en.pkl", required=False, help='Train dataframe path.')
-    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/df_validation_en.pkl", required=False, help='Validation dataframe path.')
-    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/du_2017_split/raw/dataframe/df_test_en.pkl", required=False, help='Test dataframe path.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Tokenizer name.')
+
+    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_train_br.pkl", required=False, help='Train dataframe path.')
+    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_validation_br.pkl", required=False, help='Validation dataframe path.')
+    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
 
     parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=True, help='Max len input for encoding.')
     parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=True, help='Max len output for encoding.')
