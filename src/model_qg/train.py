@@ -13,6 +13,7 @@ from string import punctuation
 from pprint import pprint
 from torch.utils import data
 from tqdm import tqdm
+from utils import currentdate
 
 import copy
 import pandas as pd
@@ -168,8 +169,8 @@ class QuestionGenerationDataset(Dataset):
         for idx in tqdm(range(len(self.data))):
             passage,answer,target = self.data.loc[idx, self.passage_column],self.data.loc[idx, self.answer], self.data.loc[idx, self.question]
 
-            #input_ = "context: %s  answer: %s </s>" % (passage, answer)
-            #target = "question: %s </s>" % (str(target))
+            #input_ = "context: %s  answer: %s </s>" % (passage, answer) ---> is this an alternative?
+            #target = "question: %s </s>" % (str(target)) ---> is this an alternative?
 
             # tokenize inputs
             tokenized_inputs = self.tokenizer(
@@ -195,13 +196,24 @@ class QuestionGenerationDataset(Dataset):
             self.targets.append(tokenized_targets)
 
 def run(args):
-    pl.seed_everything(42)
+    pl.seed_everything(args.seed_value)
 
+    # Load Tokenizer and Model
     t5_tokenizer = T5Tokenizer.from_pretrained(args.tokenizer_name)
     t5_model = T5ForConditionalGeneration.from_pretrained(args.model_name)
 
+    # Checkpoints and Logs Paths
+    CHECKPOINTS_PATH = '../../checkpoints/' + args.dir_model_name
+    TB_LOGS_PATH = CHECKPOINTS_PATH + "/tb_logs"
+    CSV_LOGS_PATH = CHECKPOINTS_PATH + "/csv_logs"
+
     # Training...
     params_dict = dict(
+        model_name = args.model_name,
+        tokenizer_name = args.tokenizer_name,
+        train_df_path = args.train_df_path,
+        validation_df_path = args.validation_df_path,
+        test_df_path = args.test_df_path,
         max_len_input = args.max_len_input,
         max_len_output = args.max_len_output,
         max_epochs = args.max_epochs,
@@ -209,24 +221,29 @@ def run(args):
         patience = args.patience,
         optimizer = args.optimizer,
         learning_rate = args.learning_rate,
-        epsilon = args.epsilon
+        epsilon = args.epsilon,
+        num_gpus = args.num_gpus,
+        seed_value = args.seed_value,
+        checkpoints_path = CHECKPOINTS_PATH,
+        tb_logs_path = TB_LOGS_PATH,
+        csv_logs_path = CSV_LOGS_PATH
     )
-
     params = argparse.Namespace(**params_dict)
 
     model = T5FineTuner(params, t5_model, t5_tokenizer) # , train_dataset, validation_dataset, test_dataset
 
     checkpoint_callback = ModelCheckpoint(
-        dirpath="checkpoints", #save at this folder
-        filename="best-checkpoint", #name for the checkpoint
-        save_top_k=1, #save only the best one
+        dirpath=CHECKPOINTS_PATH, #save at this folder
+        filename="t5-en-{epoch:02d}-{val_loss:.2f}", #name for the checkpoint, before i was using "best-checkpoint"
+        save_top_k=args.max_epochs, #save all epochs, before it was only the best (1)
         verbose=True, #output something when a model is saved
         monitor="val_loss", #monitor the validation loss
         mode="min" #save the model with minimum validation loss
     )
 
-    tb_logger = pl_loggers.TensorBoardLogger(save_dir="tb_logs")
-    csv_logger = pl_loggers.CSVLogger(save_dir="csv_logs")
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=TB_LOGS_PATH)
+    csv_logger = pl_loggers.CSVLogger(save_dir=CSV_LOGS_PATH)
+    csv_logger.log_hyperparams(params)
 
     trainer = pl.Trainer(
         callbacks = [checkpoint_callback],
@@ -270,8 +287,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Fine tune T5 for Question Generation.')
 
     # Add arguments
-    parser.add_argument('-mn','--model_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Model name.')
-    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Tokenizer name.')
+    parser.add_argument('-dmn', '--dir_model_name', type=str, metavar='', default=currentdate(), required=False, help='Directory model name.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
 
     parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_train_br.pkl", required=False, help='Train dataframe path.')
     parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_validation_br.pkl", required=False, help='Validation dataframe path.')
@@ -288,6 +306,7 @@ if __name__ == '__main__':
     parser.add_argument('-eps','--epsilon', type=float, default=1e-6, metavar='', required=False, help='Adam epsilon for numerical stability')
 
     parser.add_argument('-ng','--num_gpus', type=int, default=1, metavar='', required=True, help='Number of gpus.')
+    parser.add_argument('-sv','--seed_value', type=int, default=42, metavar='', required=False, help='Seed value.')
 
     # Parse arguments
     args = parser.parse_args()

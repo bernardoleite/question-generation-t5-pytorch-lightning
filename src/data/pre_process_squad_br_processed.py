@@ -4,9 +4,9 @@ import json
 import sys
 sys.path.append('../')
 
-doclist_train_path = '../../data/du_2017_split/doclist-train.txt'
-doclist_validation_path = '../../data/du_2017_split/doclist-dev.txt'
-doclist_test_path = '../../data/du_2017_split/doclist-test.txt'
+doclist_train_path = '../../data/squad_en_du_2017/doclist-train.txt'
+doclist_validation_path = '../../data/squad_en_du_2017/doclist-dev.txt'
+doclist_test_path = '../../data/squad_en_du_2017/doclist-test.txt'
 
 squad_br_train_path = '../../data/squad_br/processed-squad-train-v1.1.json'
 squad_br_val_path = '../../data/squad_br/processed-squad-dev-v1.1.json'

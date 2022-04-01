@@ -55,7 +55,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Convert json predictions file into text files.')
 
     # Add arguments
-    parser.add_argument('-fp','--folder_path', type=str, metavar='', required=True, help='folder that contains predictions.json')
+    parser.add_argument('-fp','--folder_path', type=str, metavar='', required=False, default="../../predictions/2022-01-02_15-13-03", help='folder that contains predictions.json')
     
     # Parse arguments
     args = parser.parse_args()

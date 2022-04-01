@@ -5,13 +5,13 @@ import sys
 sys.path.append('../')
 
  # Opening JSON file
-with open('../../data/du_2017_split/raw/json/train.json') as train_json_file:
+with open('../../data/squad_en_du_2017/raw/json/train.json') as train_json_file:
     train_data = json.load(train_json_file)
 
-with open('../../data/du_2017_split/raw/json/dev.json') as dev_json_file:
+with open('../../data/squad_en_du_2017/raw/json/dev.json') as dev_json_file:
     validation_data = json.load(dev_json_file)
 
-with open('../../data/du_2017_split/raw/json/test.json') as test_json_file:
+with open('../../data/squad_en_du_2017/raw/json/test.json') as test_json_file:
     test_data = json.load(test_json_file)
 
 train_all_compiled = []
@@ -54,9 +54,9 @@ print("Number of train QA-Paragrah pairs: ", len(train_df))
 print("Number of validation QA-Paragrah pairs: ", len(validation_df))
 print("Number of test QA-Paragrah pairs: ", len(test_df))
 
-train_df.to_pickle("../../data/du_2017_split/raw/dataframe/df_train_en.pkl")
-validation_df.to_pickle("../../data/du_2017_split/raw/dataframe/df_validation_en.pkl")
-test_df.to_pickle("../../data/du_2017_split/raw/dataframe/df_test_en.pkl")
+train_df.to_pickle("../../data/squad_en_du_2017/raw/dataframe/df_train_en.pkl")
+validation_df.to_pickle("../../data/squad_en_du_2017/raw/dataframe/df_validation_en.pkl")
+test_df.to_pickle("../../data/squad_en_du_2017/raw/dataframe/df_test_en.pkl")
 print("Pickles were generated from dataframes.")
 
 #print("\n")

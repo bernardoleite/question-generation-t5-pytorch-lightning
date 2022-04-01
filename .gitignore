@@ -2,6 +2,7 @@
 tokenizer/
 model/
 data/squad_br
+predictions/
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
