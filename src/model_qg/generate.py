@@ -15,7 +15,7 @@ import os
 import json
 import torch
 
-def generate(args, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, context: str) -> str:
+def generate(args, device, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, context: str) -> str:
 
     source_encoding = tokenizer(
         answer,
@@ -27,11 +27,6 @@ def generate(args, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, c
         add_special_tokens=True,
         return_tensors='pt'
     )
-
-    # Put model in gpu (if possible) or cpu (if not possible) for inference purpose
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    qgmodel = qgmodel.to(device)
-    print ("Device for inference:", device)
 
     # Put this in GPU (faster than using cpu)
     input_ids = source_encoding['input_ids'].to(device)
@@ -67,11 +62,19 @@ def show_result(generated: str, answer: str, context:str, original_question: str
     print('-----------------------------')
 
 def run(args):
-    # Load args (needed for model init)
+    # Load args (needed for model init) and log json
     params_dict = dict(
+        checkpoint_path = args.checkpoint_path,
+        test_df_path = args.test_df_path,
+        model_name = args.model_name,
+        tokenizer_name = args.tokenizer_name,
         batch_size = args.batch_size,
         max_len_input = args.max_len_input,
-        max_len_output = args.max_len_output
+        max_len_output = args.max_len_output,
+        num_beams = args.num_beams,
+        num_return_sequences = args.num_return_sequences,
+        repetition_penalty = args.repetition_penalty,
+        length_penalty = args.length_penalty
     )
     params = argparse.Namespace(**params_dict)
 
@@ -92,13 +95,18 @@ def run(args):
     test_df = pd.read_pickle(args.test_df_path)
 
     predictions = []
-    #test_df = test_df.sample(n=20) # to delete !!!!!!!!!!!!!!
+    #test_df = test_df.sample(n=20) # to DELETEEEEEE !!!!!!!!!!!!!!
+
+    # Put model in gpu (if possible) or cpu (if not possible) for inference purpose
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    qgmodel = qgmodel.to(device)
+    print ("Device for inference:", device)
 
     # Generate questions and append predictions
     start_time_generate = time.time()
     printcounter = 0
     for index, row in test_df.iterrows():
-        generated = generate(args, qgmodel, t5_tokenizer, row['answer'], row['context'])
+        generated = generate(args, device, qgmodel, t5_tokenizer, row['answer'], row['context'])
 
         predictions.append(
             {'context': row['context'],
@@ -131,6 +139,13 @@ def run(args):
     with open(prediction_json_path + '/predictions.json', 'w', encoding='utf-8') as file:
         json.dump(predictions, file)
 
+    # Save json params to json file next to predictions
+    with open(prediction_json_path + '/params.json', 'w', encoding='utf-8') as file:
+        file.write(
+            '[' +
+            ',\n'.join(json.dumps(str(key)+': '  + str(value)) for key,value in params_dict.items()) +
+            ']\n')
+
     print("Predictions were saved in ", prediction_json_path)
 
 if __name__ == '__main__':
@@ -138,7 +153,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-cp','--checkpoint_path', type=str, metavar='', default="checkpoints/best-checkpoint-v1.ckpt", required=False, help='Model checkpoint path.')
+    parser.add_argument('-cp','--checkpoint_path', type=str, metavar='', default="../../checkpoints/2022-04-01_18-26-57/model-epoch=02-val_loss=2.16.ckpt", required=False, help='Model checkpoint path.')
     parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
 
     parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')

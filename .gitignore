@@ -1,4 +1,5 @@
 # Specific files and folders
+checkpoints/
 tokenizer/
 model/
 data/squad_br

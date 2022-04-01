@@ -101,7 +101,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/2022-03-13_13-33-47/", required=False, help='Predictions path.')
+    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/2022-04-01_18-34-54/", required=False, help='Predictions path.')
 
     # Parse arguments
     args = parser.parse_args()

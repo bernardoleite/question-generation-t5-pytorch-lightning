@@ -13,6 +13,8 @@ from string import punctuation
 from pprint import pprint
 from torch.utils import data
 from tqdm import tqdm
+
+sys.path.append('../')
 from utils import currentdate
 
 import copy
@@ -226,7 +228,8 @@ def run(args):
         seed_value = args.seed_value,
         checkpoints_path = CHECKPOINTS_PATH,
         tb_logs_path = TB_LOGS_PATH,
-        csv_logs_path = CSV_LOGS_PATH
+        csv_logs_path = CSV_LOGS_PATH,
+        current_date = args.current_date
     )
     params = argparse.Namespace(**params_dict)
 
@@ -234,7 +237,7 @@ def run(args):
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=CHECKPOINTS_PATH, #save at this folder
-        filename="t5-en-{epoch:02d}-{val_loss:.2f}", #name for the checkpoint, before i was using "best-checkpoint"
+        filename="model-{epoch:02d}-{val_loss:.2f}", #name for the checkpoint, before i was using "best-checkpoint"
         save_top_k=args.max_epochs, #save all epochs, before it was only the best (1)
         verbose=True, #output something when a model is saved
         monitor="val_loss", #monitor the validation loss
@@ -309,6 +312,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-ng','--num_gpus', type=int, default=1, metavar='', required=True, help='Number of gpus.')
     parser.add_argument('-sv','--seed_value', type=int, default=42, metavar='', required=False, help='Seed value.')
+    parser.add_argument('-cd', '--current_date', type=str, metavar='', default=currentdate(), required=False, help='Current date.')
 
     # Parse arguments
     args = parser.parse_args()

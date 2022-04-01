@@ -18,5 +18,5 @@ do
 	 --learning_rate 0.0001 \
 	 --epsilon 0.000001 \
 	 --num_gpus 1 \
-	 --seed_value ${i} \
+	 --seed_value ${i}
 done
