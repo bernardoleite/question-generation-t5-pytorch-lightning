@@ -2,7 +2,7 @@
 
 for ((i=42; i <= 42; i++))
 do
-	python train.py \
+	taskset --cpu-list 1-22 python train.py \
 	 --dir_model_name "qg_en_t5_base_512_96_32_6_seed_${i}" \
 	 --model_name "t5-base" \
 	 --tokenizer_name "t5-base" \
