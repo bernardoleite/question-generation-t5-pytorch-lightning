@@ -256,10 +256,12 @@ def run(args):
     validation_df = pd.read_pickle(args.validation_df_path)
     test_df = pd.read_pickle(args.test_df_path)
 
-    # delete!!! just for fast testing
-    #train_df = pd.read_csv('../../data/squad_v1_train.csv')
-    #validation_df = pd.read_csv('../../data/squad_v1_val.csv')
-    #test_df = pd.read_csv('../../data/squad_v1_val.csv')
+    # DELETE!!! JUST for FAST TESTING <----
+    #####
+    #train_df = pd.read_csv('../../data/squad_experiments/squad_v1_train.csv')
+    #validation_df = pd.read_csv('../../data/squad_experiments/squad_v1_val.csv')
+    #test_df = pd.read_csv('../../data/squad_experiments/squad_v1_val.csv')
+    #####
 
     data_module = QGDataModule(params, t5_tokenizer, train_df, validation_df, test_df)
     data_module.setup()
