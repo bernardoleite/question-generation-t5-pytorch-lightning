@@ -30,7 +30,8 @@ from pytorch_lightning import loggers as pl_loggers
 
 from transformers import (
     AdamW,
-    T5ForConditionalGeneration,
+    T5ForConditionalGeneration, 
+    MT5ForConditionalGeneration,
     T5Tokenizer,
     get_linear_schedule_with_warmup
 )
@@ -200,9 +201,13 @@ class QuestionGenerationDataset(Dataset):
 def run(args):
     pl.seed_everything(args.seed_value)
 
-    # Load Tokenizer and Model
+    # Load Tokenizer
     t5_tokenizer = T5Tokenizer.from_pretrained(args.tokenizer_name)
-    t5_model = T5ForConditionalGeneration.from_pretrained(args.model_name)
+    # Load model
+    if "mt5" in args.model_name:
+        t5_model = MT5ForConditionalGeneration.from_pretrained(args.model_name)
+    else:
+        t5_model = T5ForConditionalGeneration.from_pretrained(args.model_name)
 
     # Checkpoints and Logs Paths
     CHECKPOINTS_PATH = '../../checkpoints/' + args.dir_model_name

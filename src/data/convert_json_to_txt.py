@@ -6,6 +6,8 @@ import sys
 import argparse
 sys.path.append('../')
 import pandas as pd
+import nltk
+nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 
 def run(args):
@@ -26,7 +28,7 @@ def run(args):
             context = item['context']
             if '\n' in context:
                 context = context.replace("\n", "") # hard coded fix! To be changed !!!!!!!!!!!!!!!!!!!
-            words_tokenized = word_tokenize(context)
+            words_tokenized = word_tokenize(context, language=args.language)
             words_tokenized_lowercase = [each_string.lower() for each_string in words_tokenized] # lowercase
             context = ' '.join(words_tokenized_lowercase)
             f.write("%s\n" % index_count)
@@ -35,7 +37,7 @@ def run(args):
     # Write to gt_questions.txt file
     with open(folder_path + '/gt_questions.txt', 'w', encoding="utf-8") as f:
         for item in predictions_json:
-            words_tokenized = word_tokenize(item['gt_question'])
+            words_tokenized = word_tokenize(item['gt_question'], language=args.language)
             words_tokenized_lowercase = [each_string.lower() for each_string in words_tokenized] # lowercase
             gt_question = ' '.join(words_tokenized_lowercase)
             f.write("%s\n" % gt_question)
@@ -43,7 +45,7 @@ def run(args):
     # Write to gen_questions.txt file
     with open(folder_path + '/gen_questions.txt', 'w', encoding="utf-8") as f:
         for item in predictions_json:
-            words_tokenized = word_tokenize(item['gen_question'])
+            words_tokenized = word_tokenize(item['gen_question'], language=args.language)
             words_tokenized_lowercase = [each_string.lower() for each_string in words_tokenized] # lowercase
             gen_question = ' '.join(words_tokenized_lowercase)
             f.write("%s\n" % gen_question)
@@ -56,7 +58,8 @@ if __name__ == '__main__':
 
     # Add arguments
     parser.add_argument('-fp','--folder_path', type=str, metavar='', required=True, default="../../predictions/2022-04-01_18-34-54", help='folder that contains predictions.json')
-    
+    parser.add_argument('-lg','--language', type=str, metavar='', required=True, default="english", help='Language for tokenize.')
+
     # Parse arguments
     args = parser.parse_args()
 

@@ -2,9 +2,11 @@ import argparse
 import json
 import sys
 sys.path.append('../')
+import nltk
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.translate.bleu_score import corpus_bleu
 from nltk.tokenize import word_tokenize
+nltk.download('punkt')
 from rouge import Rouge
 from rouge import FilesRouge
 from statistics import mean
@@ -85,11 +87,11 @@ def run(args):
     predictions = [pred['gen_question'] for pred in references_predictions]
 
     # Get BLEU (results are the same as reported from Du et. al (2017))
-    score_corpus_bleu = get_corpus_bleu(references, predictions, lower_case=True, language="english")
+    score_corpus_bleu = get_corpus_bleu(references, predictions, lower_case=True, language=args.language)
     print("Score Corpus Bleu: ", score_corpus_bleu)
 
     # Get ROUGE Option 1
-    mean_rouge_scores = get_rouge_option_1(references, predictions, lower_case=True, language="portuguese")
+    mean_rouge_scores = get_rouge_option_1(references, predictions, lower_case=True, language=args.language)
     print("Mean RougeL Scores: ", mean_rouge_scores)
 
     # Get ROUGE Option 2
@@ -101,7 +103,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/2022-04-01_18-34-54/", required=False, help='Predictions path.')
+    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/2022-04-01_18-34-54/", required=True, help='Predictions path.')
+    parser.add_argument('-lg','--language', type=str, metavar='', default="english", required=True, help='Language for tokenize.')
 
     # Parse arguments
     args = parser.parse_args()

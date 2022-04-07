@@ -1,5 +1,6 @@
 from transformers import (
     T5ForConditionalGeneration,
+    MT5ForConditionalGeneration,
     T5Tokenizer
 )
 
@@ -64,7 +65,8 @@ def show_result(generated: str, answer: str, context:str, original_question: str
 def run(args):
     # Load args (needed for model init) and log json
     params_dict = dict(
-        checkpoint_path = args.checkpoint_path,
+        checkpoint_model_path = args.checkpoint_model_path,
+        predictions_save_path = args.predictions_save_path,
         test_df_path = args.test_df_path,
         model_name = args.model_name,
         tokenizer_name = args.tokenizer_name,
@@ -74,17 +76,21 @@ def run(args):
         num_beams = args.num_beams,
         num_return_sequences = args.num_return_sequences,
         repetition_penalty = args.repetition_penalty,
-        length_penalty = args.length_penalty
+        length_penalty = args.length_penalty,
+        seed_value = args.seed_value
     )
     params = argparse.Namespace(**params_dict)
 
     # Load T5 base Tokenizer
-    t5_tokenizer = T5Tokenizer.from_pretrained(args.model_name)
+    t5_tokenizer = T5Tokenizer.from_pretrained(args.tokenizer_name)
     # Load T5 base Model
-    t5_model = T5ForConditionalGeneration.from_pretrained(args.tokenizer_name)
+    if "mt5" in args.model_name:
+        t5_model = MT5ForConditionalGeneration.from_pretrained(args.model_name)
+    else:
+        t5_model = T5ForConditionalGeneration.from_pretrained(args.model_name)
     # Load T5 fine-tuned model for QG
-    checkpoint_path = args.checkpoint_path
-    qgmodel = T5FineTuner.load_from_checkpoint(checkpoint_path, hparams=params, t5model=t5_model, t5tokenizer=t5_tokenizer)
+    checkpoint_model_path = args.checkpoint_model_path
+    qgmodel = T5FineTuner.load_from_checkpoint(checkpoint_model_path, hparams=params, t5model=t5_model, t5tokenizer=t5_tokenizer)
 
     # Put model in freeze() and eval() model. Not sure the purpose of freeze
     # Not sure if this should be after or before changing device for inference.
@@ -93,9 +99,9 @@ def run(args):
 
     # Read test data
     test_df = pd.read_pickle(args.test_df_path)
+    #test_df = test_df.sample(n=20) # to DELETEEEEEE !!!!!!!!!!!!!!
 
     predictions = []
-    #test_df = test_df.sample(n=20) # to DELETEEEEEE !!!!!!!!!!!!!!
 
     # Put model in gpu (if possible) or cpu (if not possible) for inference purpose
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -130,17 +136,17 @@ def run(args):
     # Save questions and answers to json file
 
     #https://stackoverflow.com/questions/273192/how-can-i-safely-create-a-nested-directory
-    prediction_json_path = "../../predictions/" + currentdate()
+    prediction_json_path = args.predictions_save_path
     from pathlib import Path
     Path(prediction_json_path).mkdir(parents=True, exist_ok=True)
 
     # Save json to json file
     # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file
-    with open(prediction_json_path + '/predictions.json', 'w', encoding='utf-8') as file:
+    with open(prediction_json_path + 'predictions.json', 'w', encoding='utf-8') as file:
         json.dump(predictions, file)
 
     # Save json params to json file next to predictions
-    with open(prediction_json_path + '/params.json', 'w', encoding='utf-8') as file:
+    with open(prediction_json_path + 'params.json', 'w', encoding='utf-8') as file:
         file.write(
             '[' +
             ',\n'.join(json.dumps(str(key)+': '  + str(value)) for key,value in params_dict.items()) +
@@ -153,7 +159,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-cp','--checkpoint_path', type=str, metavar='', default="../../checkpoints/2022-04-01_18-26-57/model-epoch=02-val_loss=2.16.ckpt", required=False, help='Model checkpoint path.')
+    parser.add_argument('-cmp','--checkpoint_model_path', type=str, metavar='', default="../../checkpoints/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=00-val_loss=1.76.ckpt", required=False, help='Model folder checkpoint path.')
+    parser.add_argument('-psp','--predictions_save_path', type=str, metavar='', default="../../predictions/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=00-val_loss=1.76/", required=False, help='Folder path to save predictions after inference.')
     parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
 
     parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
@@ -167,6 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('-nrs','--num_return_sequences', type=int, metavar='', default=1, required=True, help='Number of returned sequences.')
     parser.add_argument('-rp','--repetition_penalty', type=float, metavar='', default=1.0, required=False, help='Repetition Penalty.')
     parser.add_argument('-lp','--length_penalty', type=float, metavar='', default=1.0, required=False, help='Length Penalty.')
+    parser.add_argument('-sv','--seed_value', type=int, default=42, metavar='', required=False, help='Seed value.')
 
     # Parse arguments
     args = parser.parse_args()

@@ -3,15 +3,15 @@
 for ((i=42; i <= 42; i++))
 do
 	taskset --cpu-list 1-30 python train.py \
-	 --dir_model_name "qg_en_t5_base_512_96_32_6_seed_${i}" \
-	 --model_name "t5-base" \
-	 --tokenizer_name "t5-base" \
+	 --dir_model_name "qg_en_mt5_base_512_96_16_6_seed_${i}" \
+	 --model_name "google/mt5-base" \
+	 --tokenizer_name "google/mt5-base" \
 	 --train_df_path "../../data/squad_en_du_2017/raw/dataframe/df_train_en.pkl" \
 	 --validation_df_path "../../data/squad_en_du_2017/raw/dataframe/df_validation_en.pkl" \
 	 --test_df_path "../../data/squad_en_du_2017/raw/dataframe/df_test_en.pkl" \
 	 --max_len_input 512 \
 	 --max_len_output 96 \
-	 --batch_size 32 \
+	 --batch_size 16 \
 	 --max_epochs 6 \
 	 --patience 3 \
 	 --optimizer "AdamW" \
