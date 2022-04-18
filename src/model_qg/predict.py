@@ -16,9 +16,9 @@ import os
 import json
 import torch
 
-ANSWER = "Hans"
+ANSWER = '"Rei dos Portugueses"'
 CONTEXT ="""
-A vida de Hans mais uma vez tinha virado. Já não eram as longas navegações até aos confins dos continentes, o avançar aventuroso ao longo das costas luxuriantes e de costas desérticas, de povo em povo, de baía em baía. Agora verificava a ordem dos armazéns, o bom estado dos navios, a competência das equipagens, controlava as cargas e descargas, discutia negócios e contratos. As suas viagens tornaram-se rápidas e espaçadas.
+Afonso Henriques, também chamado de Afonsinho, e cognominado de "o Conquistador", foi o primeiro Rei de Portugal. Passa a intitular-se "Rei dos Portugueses" a partir de 1140 e reinou de jure a partir de 5 de outubro de 1143, com a celebração do Tratado de Zamora, até à sua morte. Era filho de Henrique, Conde de Portucale e sua esposa Teresa de Leão, que, à morte do conde Henrique, "ascende rapidamente ao governo do condado, o que confirma o carácter hereditário que o mesmo possuía".
 """
 
 def generate(args, device, qgmodel: T5FineTuner, tokenizer: T5Tokenizer,  answer: str, context: str) -> str:
@@ -103,10 +103,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-cmp','--checkpoint_model_path', type=str, metavar='', default="../../checkpoints/qg_en_t5_base_512_96_32_6_seed_42/model-epoch=01-val_loss=1.36.ckpt", required=False, help='Model folder checkpoint path.')
+    parser.add_argument('-cmp','--checkpoint_model_path', type=str, metavar='', default="../../checkpoints/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=03-val_loss=1.68.ckpt", required=False, help='Model folder checkpoint path.')
 
-    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
-    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Tokenizer name.')
 
     parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=False, help='Max len input for encoding.')
     parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=False, help='Max len output for encoding.')
