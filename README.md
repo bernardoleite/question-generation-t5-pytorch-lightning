@@ -179,6 +179,9 @@ To do.
 
 ### Checkpoints 
 To do.
+
+## Acknowledgements
+This project is inspired by/based on the implementations of [Venelin Valkov](https://www.youtube.com/watch?v=r6XY80Z9eSA&t=1994s), [Ramsri Golla](https://www.udemy.com/course/question-generation-using-natural-language-processing/), [Suraj Patil](https://github.com/patil-suraj/question_generation) and [Kristiyan Vachev](https://github.com/KristiyanVachev/Question-Generation).
    
 ## Contact
 * Bernardo Leite, bernardo.leite@fe.up.pt
