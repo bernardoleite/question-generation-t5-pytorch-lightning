@@ -88,7 +88,7 @@ Current experiments use the SQuAD v1.1 dataset for English (original) and Portug
     ```
     You can also run the example training script (linux and mac) `train_qg_en_t5_base_512_96_32_6.sh`:
     ```bash
-    bash train_qa_en_t5_base_512_96_32_6.sh
+    bash train_qg_en_t5_base_512_96_32_6.sh
     ```
     The previous script will start the training routine with predefined parameters:
     ```python
@@ -155,7 +155,7 @@ Current experiments use the SQuAD v1.1 dataset for English (original) and Portug
 
 2. In the end, predictions will be available at `predictions/checkpoint-name`. The folder contains model predictions (`predictions.json`), and parameters (`params.json`).
 
-3. Previous steps also apply to `inference_corpus_qa_br_v2_ptt5_base_512_96_6.sh` for the inference routine in **Portuguese**.
+3. Previous steps also apply to `inference_corpus_qg_br_v2_ptt5_base_512_96_6.sh` for the inference routine in **Portuguese**.
 
 
 ### Inference (individual sample)
