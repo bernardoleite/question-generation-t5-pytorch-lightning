@@ -297,25 +297,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Fine tune T5 for Question Generation.')
 
     # Add arguments
-    parser.add_argument('-dmn', '--dir_model_name', type=str, metavar='', default=currentdate(), required=False, help='Directory model name.')
-    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
-    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
+    parser.add_argument('-dmn', '--dir_model_name', type=str, metavar='', default="qg_br_ptt5_base_512_96_32_6_seed_42", required=False, help='Directory model name.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Tokenizer name.')
 
-    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_train_br.pkl", required=False, help='Train dataframe path.')
-    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_validation_br.pkl", required=False, help='Validation dataframe path.')
-    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
+    parser.add_argument('-trp','--train_df_path', type=str, metavar='', default="../../data/squad_br_v2/dataframe/df_train_br.pkl", required=False, help='Train dataframe path.')
+    parser.add_argument('-vp','--validation_df_path', type=str, metavar='', default="../../data/squad_br_v2/dataframe/df_validation_br.pkl", required=False, help='Validation dataframe path.')
+    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br_v2/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
 
-    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=True, help='Max len input for encoding.')
-    parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=True, help='Max len output for encoding.')
+    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=False, help='Max len input for encoding.')
+    parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=False, help='Max len output for encoding.')
 
-    parser.add_argument('-me','--max_epochs', type=int, default=10, metavar='', required=True, help='Number of max Epochs')
-    parser.add_argument('-bs','--batch_size', type=int, default=32, metavar='', required=True, help='Batch size.')
+    parser.add_argument('-me','--max_epochs', type=int, default=3, metavar='', required=False, help='Number of max Epochs')
+    parser.add_argument('-bs','--batch_size', type=int, default=32, metavar='', required=False, help='Batch size.')
     parser.add_argument('-ptc','--patience', type=int, default=3, metavar='', required=False, help='Patience') # it is not being used for now
     parser.add_argument('-o','--optimizer', type=str, default='AdamW', metavar='', required=False, help='Optimizer')
     parser.add_argument('-lr','--learning_rate', type=float, default=1e-4, metavar='', required=False, help='The learning rate to use.')
     parser.add_argument('-eps','--epsilon', type=float, default=1e-6, metavar='', required=False, help='Adam epsilon for numerical stability')
 
-    parser.add_argument('-ng','--num_gpus', type=int, default=1, metavar='', required=True, help='Number of gpus.')
+    parser.add_argument('-ng','--num_gpus', type=int, default=1, metavar='', required=False, help='Number of gpus.')
     parser.add_argument('-sv','--seed_value', type=int, default=42, metavar='', required=False, help='Seed value.')
     parser.add_argument('-cd', '--current_date', type=str, metavar='', default=currentdate(), required=False, help='Current date.')
 

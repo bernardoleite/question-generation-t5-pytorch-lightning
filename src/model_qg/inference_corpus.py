@@ -99,7 +99,7 @@ def run(args):
 
     # Read test data
     test_df = pd.read_pickle(args.test_df_path)
-    #test_df = test_df.sample(n=20) # to DELETEEEEEE !!!!!!!!!!!!!!
+    test_df = test_df.sample(n=20) # to DELETEEEEEE !!!!!!!!!!!!!!
 
     predictions = []
 
@@ -159,19 +159,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-cmp','--checkpoint_model_path', type=str, metavar='', default="../../checkpoints/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=00-val_loss=1.76.ckpt", required=False, help='Model folder checkpoint path.')
-    parser.add_argument('-psp','--predictions_save_path', type=str, metavar='', default="../../predictions/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=00-val_loss=1.76/", required=False, help='Folder path to save predictions after inference.')
-    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
+    parser.add_argument('-cmp','--checkpoint_model_path', type=str, metavar='', default="../../checkpoints/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=03-val_loss=1.68.ckpt", required=False, help='Model folder checkpoint path.')
+    parser.add_argument('-psp','--predictions_save_path', type=str, metavar='', default="../../predictions/qg_br_ptt5_base_512_96_32_6_seed_42/model-epoch=03-val_loss=1.68/", required=False, help='Folder path to save predictions after inference.')
+    parser.add_argument('-tp','--test_df_path', type=str, metavar='', default="../../data/squad_br_v2/dataframe/df_test_br.pkl", required=False, help='Test dataframe path.')
 
-    parser.add_argument('-mn','--model_name', type=str, metavar='', default="t5-base", required=False, help='Model name.')
-    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="t5-base", required=False, help='Tokenizer name.')
+    parser.add_argument('-mn','--model_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Model name.')
+    parser.add_argument('-tn','--tokenizer_name', type=str, metavar='', default="unicamp-dl/ptt5-base-portuguese-vocab", required=False, help='Tokenizer name.')
 
-    parser.add_argument('-bs','--batch_size', type=int, metavar='', default=32, required=True, help='Batch size.')
-    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=True, help='Max len input for encoding.')
-    parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=True, help='Max len output for encoding.')
+    parser.add_argument('-bs','--batch_size', type=int, metavar='', default=32, required=False, help='Batch size.')
+    parser.add_argument('-mli','--max_len_input', type=int, metavar='', default=512, required=False, help='Max len input for encoding.')
+    parser.add_argument('-mlo','--max_len_output', type=int, metavar='', default=96, required=False, help='Max len output for encoding.')
 
-    parser.add_argument('-nb','--num_beams', type=int, metavar='', default=5, required=True, help='Number of beams.')
-    parser.add_argument('-nrs','--num_return_sequences', type=int, metavar='', default=1, required=True, help='Number of returned sequences.')
+    parser.add_argument('-nb','--num_beams', type=int, metavar='', default=5, required=False, help='Number of beams.')
+    parser.add_argument('-nrs','--num_return_sequences', type=int, metavar='', default=1, required=False, help='Number of returned sequences.')
     parser.add_argument('-rp','--repetition_penalty', type=float, metavar='', default=1.0, required=False, help='Repetition Penalty.')
     parser.add_argument('-lp','--length_penalty', type=float, metavar='', default=1.0, required=False, help='Length Penalty.')
     parser.add_argument('-sv','--seed_value', type=int, default=42, metavar='', required=False, help='Seed value.')

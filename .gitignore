@@ -2,8 +2,11 @@
 checkpoints/
 tokenizer/
 model/
-data/squad_br
 predictions/
+data/squad_br
+data/squad_br_v2
+data/squad_en_original
+data/squad_experiments
 .DS_Store
 
 # Byte-compiled / optimized / DLL files

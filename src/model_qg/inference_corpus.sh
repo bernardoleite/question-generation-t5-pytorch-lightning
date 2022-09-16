@@ -2,7 +2,7 @@
 
 for ((i=42; i <= 42; i++))
 do
-	CUDA_VISIBLE_DEVICES=1 python generate.py \
+	CUDA_VISIBLE_DEVICES=1 python inference_corpus.py \
 	 --checkpoint_model_path "../../checkpoints/qg_en_mt5_base_512_96_16_6_seed_42/model-epoch=01-val_loss=1.52.ckpt" \
 	 --predictions_save_path "../../predictions/qg_en_mt5_base_512_96_16_6_seed_42/model-epoch=01-val_loss=1.52/" \
 	 --test_df_path "../../data/squad_en_du_2017/raw/dataframe/df_test_en.pkl" \
