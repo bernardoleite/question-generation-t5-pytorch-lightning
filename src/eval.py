@@ -151,8 +151,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/br_v2/", required=False, help='Predictions path.')
-    parser.add_argument('-lg','--language', type=str, metavar='', default="portuguese", required=False, help='Language for tokenize.')
+    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/br_v2/", required=True, help='Predictions path.')
+    parser.add_argument('-lg','--language', type=str, metavar='', default="portuguese", required=True, help='Language for tokenize.')
 
     # Parse arguments
     args = parser.parse_args()

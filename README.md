@@ -193,10 +193,10 @@ We present the model checkpoints and their corresponding results for this [test 
 |  epoch=05_loss=1.34 |    mt5-base    |  Portuguese  |   43.10  |   29.63  |   22.20  |   17.19  |  43.56 |    -    |
 
 Links for model checkpoint download:
-- [epoch=01_loss=1.36 (EN)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/Ec-fXMS0z5lIjNkaW3iJSycBF5qfnvHn3ASoRBmdwaTvXg?e=Jd31Oh)
-- [epoch=04_loss=1.46 (EN)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EWWwFQV18rNHklziNueuRM4BIJbzSRDtSeY4M6h_H0CIBQ?e=fEMfnB)
-- [epoch=03_loss=1.74 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EWWwFQV18rNHklziNueuRM4BIJbzSRDtSeY4M6h_H0CIBQ?e=fEMfnB)
-- [epoch=05_loss=1.34 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EWWwFQV18rNHklziNueuRM4BIJbzSRDtSeY4M6h_H0CIBQ?e=fEMfnB)
+- [epoch=01_loss=1.36 (EN)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/Edqr6LcVcY5ItQkKrKkw05QBnTnvcQ8IPPl-9vsoeQXCWA?e=WuvJNj)
+- [epoch=04_loss=1.46 (EN)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EcBo2nOAymdFj4jNaylokQ8BTLROiwh4SzWdaabZRt-x2w?e=QuGwGJ)
+- [epoch=03_loss=1.74 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/ETqGkHp2HdlCvuDmip88_AEB_fJr2lJ6ed5cyo40xokMTw?e=N3FEZa)
+- [epoch=05_loss=1.34 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EX9G-D-39atGhp7yjLM3C0cBjf7Vfb7onfEJzSQ6Hmrmhg?e=ELnc8U)
 
 ## Issues and Usage Q&A
 To ask questions, report issues or request features, please use the GitHub Issue Tracker.
