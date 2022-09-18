@@ -1,0 +1,1 @@
+Please see how to get predictions from [here](https://github.com/bernardoleite/question-generation-t5-pytorch-lightning#readme).

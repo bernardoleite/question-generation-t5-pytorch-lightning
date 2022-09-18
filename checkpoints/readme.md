@@ -1,0 +1,1 @@
+Please see how to get checkpoints from [here](https://github.com/bernardoleite/question-generation-t5-pytorch-lightning#readme).
