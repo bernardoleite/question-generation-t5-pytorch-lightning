@@ -81,7 +81,7 @@ class T5FineTuner(pl.LightningModule):
             optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)
         return optimizer
 
-    # Tomás Osório method
+    # for experimental purposes
 """     def configure_optimizers(self):
         if self.args.optimizer == 'AdamW':
             optimizer = AdamW(self.parameters(), lr=self.args.learning_rate, eps=self.args.epsilon)

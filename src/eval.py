@@ -78,6 +78,48 @@ def get_rouge_option_2(path_predictions, path_references):
     scores_files_rouge = files_rouge.get_scores(path_predictions, path_references, avg=True)
     return scores_files_rouge
 
+def print_bleu_stats(preds, method, lower_case=True, language="portuguese"):
+
+    for index, pred in enumerate(preds):
+        # reference
+        ref_processed = word_tokenize(pred["gt_question"], language=language) # tokenize
+        if lower_case:
+            ref_processed = [each_string.lower() for each_string in ref_processed] # lowercase
+        reference = [ref_processed]
+        ref_rouge = ' '.join(ref_processed)
+
+        # candidate
+        pred_processed = word_tokenize(pred["gen_question"], language=language) # tokenize
+        if lower_case:
+            pred_processed = [each_string.lower() for each_string in pred_processed] # lowercase
+        pred_rouge = ' '.join(pred_processed)
+
+        # bleu
+        sentence_bleu_1 = sentence_bleu(reference, pred_processed, weights = [1,0,0,0])
+        sentence_bleu_2 = sentence_bleu(reference, pred_processed, weights = [0.5,0.5,0,0])
+        sentence_bleu_3 = sentence_bleu(reference, pred_processed, weights = [1/3,1/3,1/3,0])
+        sentence_bleu_4 = sentence_bleu(reference, pred_processed, weights = [0.25,0.25,0.25,0.25])
+
+        # rouge
+        rouge = Rouge() #init rouge
+        curr_score = rouge.get_scores(pred_rouge, ref_rouge)
+
+        preds[index]["bleu_1"] = sentence_bleu_1
+        preds[index]["bleu_2"] = sentence_bleu_2
+        preds[index]["bleu_3"] = sentence_bleu_3
+        preds[index]["bleu_4"] = sentence_bleu_4
+        preds[index]["rouge_l"] = curr_score[0]["rouge-l"]["r"]
+
+    if method == 'high':
+        new_preds = sorted(preds, key=lambda d: d['bleu_4']) 
+    else:
+        new_preds = sorted(preds, key=lambda d: d['bleu_4']) 
+    
+    for pred in new_preds:
+        print(pred,"\n")
+
+    return 1
+
 def run(args):
     # Read predictions file
     with open(args.predictions_path + "predictions.json") as file:
@@ -85,6 +127,12 @@ def run(args):
     
     references = [ref['gt_question'] for ref in references_predictions]
     predictions = [pred['gen_question'] for pred in references_predictions]
+
+    # Get BLEU (results are the same as reported from Du et. al (2017))
+    score_corpus_bleu = get_corpus_bleu(references, predictions, lower_case=True, language=args.language)
+    print("Score Corpus Bleu: ", score_corpus_bleu)
+
+    result = print_bleu_stats(references_predictions, method="high", lower_case=True, language=args.language)
 
     # Get BLEU (results are the same as reported from Du et. al (2017))
     score_corpus_bleu = get_corpus_bleu(references, predictions, lower_case=True, language=args.language)
@@ -103,8 +151,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Generate questions and save them to json file.')
 
     # Add arguments
-    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/2022-04-01_18-34-54/", required=True, help='Predictions path.')
-    parser.add_argument('-lg','--language', type=str, metavar='', default="english", required=True, help='Language for tokenize.')
+    parser.add_argument('-pp','--predictions_path', type=str, metavar='', default="../predictions/br_v2/", required=False, help='Predictions path.')
+    parser.add_argument('-lg','--language', type=str, metavar='', default="portuguese", required=False, help='Language for tokenize.')
 
     # Parse arguments
     args = parser.parse_args()

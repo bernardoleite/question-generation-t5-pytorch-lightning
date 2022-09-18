@@ -175,13 +175,52 @@ Example/Demo:
 3.  See output (it should be a question)
 
 ### Evaluation 
-To do.
+(Option 1) 
+You can use these [evaluation scripts](https://github.com/xinyadu/nqg/tree/master/qgevalcap) for obtaining BLEU 1-4, ROUGEL and METEOR. Note that METEOR only works for English. By using these evaluation scripts you need three different files (ground truth questions, generated questions and contexts). You can use `src/data/eval_convert_json_to_text.py` to generate such files from `predictions/checkpoint-name`.
 
-### Checkpoints 
-To do.
+(Option 2 - only for BLEU 1-4) 
+Run `src/eval.py`
+
+
+## Checkpoints
+We present the model checkpoints and their corresponding results for this [test set](https://github.com/xinyadu/nqg/blob/master/data/raw/test.json). The METEOR metric is not available for Portuguese.
+
+| **Checkpoint Name** | **Model Type** | **Language** | **BL 1** | **BL 2** | **BL 3** | **BL 4** | **RL** | **MTR** |
+|:-------------------:|:--------------:|:------------:|:--------:|:--------:|:--------:|:--------:|:------:|:-------:|
+|  epoch=01_loss=1.36 |     t5-base    |    English   |   48.88  |   34.37  |   26.18  |   20.55  |  49.56 |  24.29  |
+|  epoch=04_loss=1.46 |    mt5-base    |    English   |   48.35  |   33.73  |   25.47  |   19.84  |  48.76 |  23.76  |
+|  epoch=03_loss=1.74 |    ptt5-base   |  Portuguese  |   43.61  |   30.04  |   22.58  |   17.54  |  43.64 |    -    |
+|  epoch=05_loss=1.34 |    mt5-base    |  Portuguese  |   43.10  |   29.63  |   22.20  |   17.19  |  43.56 |    -    |
+
+Links for model checkpoint download:
+- [epoch=01_loss=1.36 (EN)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/Ec-fXMS0z5lIjNkaW3iJSycBF5qfnvHn3ASoRBmdwaTvXg?e=Jd31Oh)
+- [epoch=04_loss=1.46 (EN)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EWWwFQV18rNHklziNueuRM4BIJbzSRDtSeY4M6h_H0CIBQ?e=fEMfnB)
+- [epoch=03_loss=1.74 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EWWwFQV18rNHklziNueuRM4BIJbzSRDtSeY4M6h_H0CIBQ?e=fEMfnB)
+- [epoch=05_loss=1.34 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EWWwFQV18rNHklziNueuRM4BIJbzSRDtSeY4M6h_H0CIBQ?e=fEMfnB)
+
+## Issues and Usage Q&A
+To ask questions, report issues or request features, please use the GitHub Issue Tracker.
+
+## Contributing
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". Don't forget to give the project a star! Thanks in advance!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+### Project
+This project is released under the **MIT** license. For details, please see the file [LICENSE](https://github.com/bernardoleite/question-generation-t5-pytorch-lightning/blob/main/LICENSE) in the root directory.
+
+### Commercial Purposes
+A commercial license may also be available for use in industrial projects, collaborations or distributors of proprietary software that do not wish to use an open-source license. Please contact the author if you are interested.
 
 ## Acknowledgements
-The base code is inspired by/based on the implementations of [Venelin Valkov](https://www.youtube.com/watch?v=r6XY80Z9eSA&t=1994s), [Ramsri Golla](https://www.udemy.com/course/question-generation-using-natural-language-processing/), [Suraj Patil](https://github.com/patil-suraj/question_generation) and [Kristiyan Vachev](https://github.com/KristiyanVachev/Question-Generation).
+The base code is inspired by the implementations of [Venelin Valkov](https://www.youtube.com/watch?v=r6XY80Z9eSA&t=1994s), [Ramsri Golla](https://www.udemy.com/course/question-generation-using-natural-language-processing/), [Suraj Patil](https://github.com/patil-suraj/question_generation) and [Kristiyan Vachev](https://github.com/KristiyanVachev/Question-Generation).
    
 ## Contact
 * Bernardo Leite, bernardo.leite@fe.up.pt
