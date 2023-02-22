@@ -198,6 +198,8 @@ Links for model checkpoint download:
 - [epoch=03_loss=1.74 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/ETqGkHp2HdlCvuDmip88_AEB_fJr2lJ6ed5cyo40xokMTw?e=N3FEZa)
 - [epoch=05_loss=1.34 (PT)](https://uporto-my.sharepoint.com/:u:/g/personal/up201404464_up_pt/EX9G-D-39atGhp7yjLM3C0cBjf7Vfb7onfEJzSQ6Hmrmhg?e=ELnc8U)
 
+Links above have expired. Here is a [temporary link](https://uporto-my.sharepoint.com/:f:/g/personal/up201404464_up_pt/Ev9Jss6myK9PhKQIDqUoRM4BNxPw8lmWznUz2NMSyhrTqA?e=2MzkCT) for all 4 models.
+
 ## Issues and Usage Q&A
 To ask questions, report issues or request features, please use the GitHub Issue Tracker.
 
