@@ -99,7 +99,6 @@ def run(args):
 
     # Read test data
     test_df = pd.read_pickle(args.test_df_path)
-    test_df = test_df.sample(n=20) # to DELETEEEEEE !!!!!!!!!!!!!!
 
     predictions = []
 
